@@ -8,6 +8,10 @@ handlers:
     class: logging.StreamHandler
     formatter: simple
     level: INFO
+    stream: ext://sys.stdout
+root:
+  level: WARNING
+  handlers: [console]
 loggers:
   __main__:
     handlers: [console]
@@ -16,4 +20,9 @@ loggers:
   statistics:
     handlers: [console]
     level: INFO
+    propagate: no
+  # Добавляем логгер для обработки некорректных данных
+  data_processor:
+    handlers: [console]
+    level: ERROR
     propagate: no

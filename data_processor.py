@@ -16,6 +16,7 @@ class SumResult:
     total: float
     count: int
     incorrect_count: int
+    average: Optional[float]
 
 
 class DataProcessor:
@@ -31,16 +32,14 @@ class DataProcessor:
     def add_incorrect(self) -> None:
         self.incorrect_count += 1
 
-    def calculate_average(self) -> AverageResult:
-        if self.count == 0:
-            return AverageResult(average=None, error="Нет корректных данных для вычисления среднего.")
-        average = self.total_sum / self.count
-        return AverageResult(average=average, error=None)
+    def calculate_results(self) -> SumResult:
+        average = self.total_sum / self.count if self.count > 0 else None
+        return SumResult(total=self.total_sum, count=self.count, incorrect_count=self.incorrect_count, average=average)
 
 
 def safe_add(processor: DataProcessor, item) -> None:
     if item is None or not isinstance(item, (int, float)):
-        logger.warning(f"Некорректные данные: {item} - неподдерживаемый тип.")
+        logger.error(f"Некорректные данные: {item} - неподдерживаемый тип.")
         processor.add_incorrect()
         return
 
@@ -48,32 +47,25 @@ def safe_add(processor: DataProcessor, item) -> None:
         value = float(item)
         processor.add_value(value)
     except (ValueError, TypeError) as e:
-        logger.warning(f"Некорректные данные: {item} - {e}")
+        logger.error(f"Некорректные данные: {item} - {e}")
         processor.add_incorrect()
 
 
-def calculate_average(total: float, count: int) -> AverageResult:
-    if count == 0:
-        return AverageResult(average=None, error="Нет корректных данных для вычисления среднего.")
+def process_data(data: Iterable[float]) -> (SumResult, AverageResult):
+    if not data:
+        logger.error("Входные данные пусты.")
+        sum_result = SumResult(total=0.0, count=0, incorrect_count=0, average=None)
+        average_result = AverageResult(average=None, error="Нет данных для расчета среднего.")
+        return sum_result, average_result
 
-    average = total / count
-    return AverageResult(average=average, error=None)
-
-
-def handle_data(data: Iterable[float]) -> tuple[SumResult, AverageResult]:
     processor = DataProcessor()
     for item in data:
         safe_add(processor, item)
 
-    sum_result = SumResult(total=processor.total_sum, count=processor.count, incorrect_count=processor.incorrect_count)
-    average_result = processor.calculate_average()
+    sum_result = processor.calculate_results()
+    average_result = AverageResult(average=sum_result.average, error=None)
+
+    if sum_result.count == 0:
+        average_result = AverageResult(average=None, error="Нет данных для расчета среднего.")
+
     return sum_result, average_result
-
-
-def process_data(data: Iterable[float]) -> tuple[SumResult, AverageResult]:
-    if not data:
-        logger.error("Входные данные пусты.")
-        return SumResult(total=0.0, count=0, incorrect_count=0), AverageResult(average=None,
-                                                                               error="Нет корректных данных для вычисления среднего.")
-
-    return handle_data(data)

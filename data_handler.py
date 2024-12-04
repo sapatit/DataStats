@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 
 SumResult = namedtuple('SumResult', ['total', 'count', 'incorrect_count'])
 
-
 class DataHandler(ABC):
     @abstractmethod
     def process_data(self, data: Iterable[float]) -> SumResult:
@@ -15,7 +14,7 @@ class DataHandler(ABC):
             data (Iterable[float]): Итерируемый объект, содержащий числовые значения.
 
         Returns:
-                SumResult: Результат суммирования.
+            SumResult: Результат суммирования.
         """
         pass
 
@@ -35,4 +34,26 @@ class DataHandler(ABC):
 
     @abstractmethod
     def _process_item(self, item: Union[int, float, str]) -> Optional[float]:
+        """
+        Обрабатывает отдельный элемент данных.
+
+        Args:
+            item (Union[int, float, str]): Элемент данных, который нужно обработать.
+
+        Returns:
+            Optional[float]: Обработанный элемент или None, если элемент некорректен.
+        """
         pass
+
+# Пример реализации DataHandler
+class SimpleDataHandler(DataHandler):
+    def process_data(self, data: Iterable[float]) -> SumResult:
+        return self._process_data(data)
+
+    def _process_item(self, item: Union[int, float, str]) -> Optional[float]:
+        try:
+            # Пробуем преобразовать элемент в float
+            return float(item)
+        except (ValueError, TypeError):
+            # Если не удалось преобразовать, возвращаем None
+            return None

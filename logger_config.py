@@ -3,7 +3,6 @@ import logging.config
 import yaml
 import os
 
-
 def setup_logger(config_file: str) -> None:
     with open(config_file, 'r') as f:
         config = yaml.safe_load(f.read())
